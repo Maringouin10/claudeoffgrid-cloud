@@ -1,0 +1,204 @@
+{
+  "name": "Claude Offgrid — lancer une tâche",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Déclencheur manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-460, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "baseUrl",
+              "value": "https://claude.exemple.fr",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "repo",
+              "value": "owner/name",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "prompt",
+              "value": "Mets à jour le README avec la section d'installation Docker, puis pousse.",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "branch",
+              "value": "claude/maj-readme",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Paramètres",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.baseUrl }}/api/hooks/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ repo: $json.repo, prompt: $json.prompt, branch: $json.branch }) }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Lancer la tâche",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-20, 300],
+      "notes": "Credential « Header Auth » : Name = Authorization, Value = Bearer <token généré dans Réglages ▸ Webhooks>"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Attendre 20 s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [200, 300],
+      "webhookId": "b1000000-0000-4000-8000-000000000001"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Paramètres').first().json.baseUrl }}/api/hooks/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $('Lancer la tâche').first().json.taskId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Vérifier le statut",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.done }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "Terminée ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "r2",
+              "name": "branche",
+              "value": "={{ $json.branch }}",
+              "type": "string"
+            },
+            {
+              "id": "r3",
+              "name": "commit",
+              "value": "={{ $json.pushedSha }}",
+              "type": "string"
+            },
+            {
+              "id": "r4",
+              "name": "resume",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "r5",
+              "name": "ouvrirPR",
+              "value": "={{ $json.compareUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "Résultat",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 200]
+    }
+  ],
+  "connections": {
+    "Déclencheur manuel": {
+      "main": [[{ "node": "Paramètres", "type": "main", "index": 0 }]]
+    },
+    "Paramètres": {
+      "main": [[{ "node": "Lancer la tâche", "type": "main", "index": 0 }]]
+    },
+    "Lancer la tâche": {
+      "main": [[{ "node": "Attendre 20 s", "type": "main", "index": 0 }]]
+    },
+    "Attendre 20 s": {
+      "main": [[{ "node": "Vérifier le statut", "type": "main", "index": 0 }]]
+    },
+    "Vérifier le statut": {
+      "main": [[{ "node": "Terminée ?", "type": "main", "index": 0 }]]
+    },
+    "Terminée ?": {
+      "main": [
+        [{ "node": "Résultat", "type": "main", "index": 0 }],
+        [{ "node": "Attendre 20 s", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
