@@ -136,6 +136,19 @@ function runClaude(
     return Promise.reject(new Error("Aucun token d'abonnement Claude configuré"));
   }
 
+  // Claude Code refuses --dangerously-skip-permissions under uid 0. Say so
+  // plainly here, because the CLI's own message reads like a config problem.
+  if (process.getuid?.() === 0) {
+    return Promise.reject(
+      new Error(
+        'Le service tourne en root, or Claude Code refuse ' +
+          '--dangerously-skip-permissions sous root. Avec Docker, reconstruis ' +
+          "l'image : elle bascule sur l'utilisateur non privilégié « node ». " +
+          'En local, lance le serveur depuis un compte non-root.',
+      ),
+    );
+  }
+
   const args = [
     '-p',
     prompt,

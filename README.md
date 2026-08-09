@@ -182,7 +182,9 @@ Ce que le projet fait :
   toutes les sessions ;
 - tout token d'installation GitHub est expurgé (`***`) de la sortie git avant d'atteindre
   la base ou le dashboard ;
-- comparaisons de secrets en temps constant.
+- comparaisons de secrets en temps constant ;
+- le conteneur n'est root que le temps d'aligner les droits du volume, puis passe à
+  l'utilisateur non privilégié `node` — le serveur comme l'agent tournent en uid 1000.
 
 Ce dont tu dois avoir conscience :
 
@@ -218,6 +220,22 @@ docker compose up -d
 Si le port annoncé dans l'erreur n'est pas celui que tu attendais, vérifie qu'aucun
 `COG_HOST_PORT` ne traîne dans ton shell : `docker compose config | grep -A3 ports`
 affiche la valeur réellement retenue.
+
+### `--dangerously-skip-permissions cannot be used with root/sudo privileges`
+
+Claude Code refuse ce drapeau sous `root`. L'image y répond en démarrant en root
+uniquement le temps d'aligner les droits du volume `/data`, puis en passant à
+l'utilisateur non privilégié `node` via l'entrypoint. Si tu vois cette erreur,
+c'est que tu tournes sur une image d'avant ce correctif :
+
+```bash
+git pull
+docker compose up -d --build
+docker compose exec claude-offgrid id    # doit afficher uid=1000(node)
+```
+
+En développement local, la même règle s'applique : lance `npm run dev` depuis un
+compte ordinaire, pas en `sudo`.
 
 ### L'agent échoue à s'authentifier
 
