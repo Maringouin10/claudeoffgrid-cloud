@@ -25,7 +25,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
+    PORT=3006 \
     HOSTNAME=0.0.0.0 \
     DATA_DIR=/data
 
@@ -49,10 +49,10 @@ RUN mkdir -p /data/workspaces /data/claude-home \
  && git config --system --add safe.directory '*'
 
 VOLUME ["/data"]
-EXPOSE 3000
+EXPOSE 3006
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:3000/api/health || exit 1
+  CMD curl -fsS http://127.0.0.1:3006/api/health || exit 1
 
 # tini reaps the `claude` and `git` children the app spawns.
 ENTRYPOINT ["/usr/bin/tini", "--"]

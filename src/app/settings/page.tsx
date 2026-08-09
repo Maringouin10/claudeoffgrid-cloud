@@ -9,7 +9,7 @@ export default async function SettingsPage() {
   await requirePage();
 
   const h = await headers();
-  const host = h.get('x-forwarded-host') || h.get('host') || 'localhost:3000';
+  const host = h.get('x-forwarded-host') || h.get('host') || 'localhost:3006';
   const proto = h.get('x-forwarded-proto') || (host.startsWith('localhost') ? 'http' : 'https');
   const baseUrl = process.env.PUBLIC_URL?.replace(/\/+$/, '') || `${proto}://${host}`;
 

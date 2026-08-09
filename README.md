@@ -43,7 +43,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Ouvre `http://localhost:3000` (ou ton `PUBLIC_URL`) et suis l'assistant.
+Ouvre `http://localhost:3006` (ou ton `PUBLIC_URL`) et suis l'assistant.
 
 ### Étape 1 — Mot de passe
 
@@ -150,7 +150,7 @@ Variables d'environnement (dans `.env`) :
 |---|---|---|
 | `APP_SECRET` | *(généré)* | Clé de chiffrement des secrets et de signature des sessions. **Définis-la** : sans elle, une clé est écrite dans le volume et perdre le volume rend les secrets illisibles. |
 | `PUBLIC_URL` | déduit des en-têtes | Origine publique. Requise pour la création en un clic de la GitHub App derrière un proxy. |
-| `PORT` | `3000` | Port exposé sur l'hôte. |
+| `PORT` | `3006` | Port exposé sur l'hôte. |
 | `COOKIE_SECURE` | `false` | `true` en HTTPS, pour un cookie de session `Secure`. |
 | `DATA_DIR` | `/data` | Racine des données (base, workspaces, état du CLI). |
 | `CLAUDE_BIN` | `claude` | Chemin du binaire Claude Code. |
@@ -200,7 +200,7 @@ Ce dont tu dois avoir conscience :
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3006
 npm run typecheck
 npm run build
 ```
