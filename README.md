@@ -150,7 +150,7 @@ Variables d'environnement (dans `.env`) :
 |---|---|---|
 | `APP_SECRET` | *(généré)* | Clé de chiffrement des secrets et de signature des sessions. **Définis-la** : sans elle, une clé est écrite dans le volume et perdre le volume rend les secrets illisibles. |
 | `PUBLIC_URL` | déduit des en-têtes | Origine publique. Requise pour la création en un clic de la GitHub App derrière un proxy. |
-| `PORT` | `3006` | Port exposé sur l'hôte. |
+| `COG_HOST_PORT` | `3006` | Port exposé sur l'hôte. Le conteneur écoute toujours sur `3006` en interne. |
 | `COOKIE_SECURE` | `false` | `true` en HTTPS, pour un cookie de session `Secure`. |
 | `DATA_DIR` | `/data` | Racine des données (base, workspaces, état du CLI). |
 | `CLAUDE_BIN` | `claude` | Chemin du binaire Claude Code. |
@@ -195,6 +195,39 @@ Ce dont tu dois avoir conscience :
   compose up` sans monter le socket Docker ;
 - **l'agent pousse sans revue.** Il ne fusionne jamais et n'ouvre pas de PR tout seul, mais
   la branche part sur GitHub dès qu'un tour réussit. Protège tes branches importantes.
+
+## Dépannage
+
+### `Bind for 0.0.0.0:<port> failed: port is already allocated`
+
+Un autre processus de ta machine détient déjà ce port de l'hôte. Trouve le coupable :
+
+```bash
+docker ps --format '{{.Names}}\t{{.Ports}}' | grep <port>   # un autre conteneur ?
+sudo ss -ltnp | grep :<port>                                # ou un service hôte
+```
+
+Puis soit tu libères le port, soit tu en choisis un autre — seul le côté hôte change,
+le conteneur continue d'écouter sur `3006` :
+
+```bash
+echo 'COG_HOST_PORT=3007' >> .env
+docker compose up -d
+```
+
+Si le port annoncé dans l'erreur n'est pas celui que tu attendais, vérifie qu'aucun
+`COG_HOST_PORT` ne traîne dans ton shell : `docker compose config | grep -A3 ports`
+affiche la valeur réellement retenue.
+
+### L'agent échoue à s'authentifier
+
+Le token d'abonnement a expiré. Régénère-le avec `claude setup-token` et remplace-le dans
+**Réglages ▸ Identifiants**.
+
+### `Impossible de lancer « claude »`
+
+Le binaire n'est pas dans le `PATH` du processus. Dans l'image Docker il est installé
+globalement ; en développement local, installe-le ou pointe `CLAUDE_BIN` vers son chemin.
 
 ## Développement
 

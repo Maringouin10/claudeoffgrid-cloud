@@ -5,7 +5,10 @@ services:
     container_name: claude-offgrid
     restart: unless-stopped
     ports:
-      - '${PORT:-3006}:3006'
+      # Hôte:conteneur. Le conteneur écoute toujours sur 3006 ; seul le côté
+      # gauche est réglable. Nom préfixé COG_ pour qu'un PORT ambiant dans ton
+      # shell ou un .env partagé ne le détourne pas silencieusement.
+      - '${COG_HOST_PORT:-3006}:3006'
     environment:
       # Encrypts every secret at rest. Generate once:
       #   openssl rand -hex 32
